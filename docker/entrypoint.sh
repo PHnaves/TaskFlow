@@ -10,8 +10,14 @@ mkdir -p \
     storage/logs \
     bootstrap/cache
 
-if [ ! -f vendor/autoload.php ]; then
-    composer install --no-interaction --prefer-dist
+if [ "$(id -u)" = "0" ]; then
+    if [ ! -f vendor/autoload.php ]; then
+        COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
+    fi
+
+    chown -R app:app vendor bootstrap/cache storage
+
+    exec su-exec app "$0" "$@"
 fi
 
 if [ ! -f .env ] && [ -f .env.example ]; then
