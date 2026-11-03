@@ -10,6 +10,23 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_registration_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/register');
+
+        $response->assertOk();
+        $response->assertViewIs('auth.register');
+    }
+
+    public function test_registration_screen_is_not_available_to_authenticated_users(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/register');
+
+        $response->assertRedirect('/');
+    }
+
     public function test_a_user_can_register_with_valid_data(): void
     {
         $response = $this->post('/register', [

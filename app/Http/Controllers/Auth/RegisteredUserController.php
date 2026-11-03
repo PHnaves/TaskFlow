@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\Auth\AuthService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class RegisteredUserController extends Controller
@@ -12,6 +13,11 @@ class RegisteredUserController extends Controller
     public function __construct(
         private readonly AuthService $authService,
     ) {}
+
+    public function create(): View
+    {
+        return view('auth.register');
+    }
 
     public function store(RegisterRequest $request): RedirectResponse
     {
