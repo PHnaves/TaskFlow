@@ -55,6 +55,7 @@ services:
       - "${FORWARD_DB_PORT:-5432}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
