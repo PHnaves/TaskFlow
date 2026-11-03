@@ -1,0 +1,19 @@
+flowchart LR
+    usuario(["Usuário"])
+
+    subgraph sistema["TaskFlow"]
+        direction TB
+        cadastrar["Cadastrar tarefa"]
+        visualizar["Visualizar tarefas"]
+        editar["Editar tarefa"]
+        excluir["Excluir tarefa"]
+        concluir["Concluir tarefa"]
+        filtrar["Filtrar tarefas"]
+    end
+
+    usuario --> cadastrar
+    usuario --> visualizar
+    usuario --> editar
+    usuario --> excluir
+    usuario --> concluir
+    usuario --> filtrar

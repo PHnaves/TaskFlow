@@ -1,0 +1,22 @@
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string email
+        +string password
+        +tasks()
+    }
+
+    class Task {
+        +int id
+        +int user_id
+        +string title
+        +text description
+        +string status
+        +string priority
+        +datetime created_at
+        +datetime updated_at
+        +markAsCompleted()
+    }
+
+    User "1" --> "0..*" Task : possui
