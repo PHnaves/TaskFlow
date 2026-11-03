@@ -30,7 +30,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, xml, ctype, tokenizer, sqlite, pdo_sqlite, bcmath, intl
+          extensions: mbstring, xml, ctype, tokenizer, pgsql, pdo_pgsql, bcmath, intl
           coverage: none
           tools: composer:v2
 
@@ -52,6 +52,29 @@ jobs:
     name: Testes automatizados
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskflow
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: taskflow_testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U taskflow -d taskflow_testing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: taskflow_testing
+      DB_USERNAME: taskflow
+      DB_PASSWORD: secret
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,7 +83,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, xml, ctype, tokenizer, sqlite, pdo_sqlite, bcmath, intl
+          extensions: mbstring, xml, ctype, tokenizer, pgsql, pdo_pgsql, bcmath, intl
           coverage: none
           tools: composer:v2
 
