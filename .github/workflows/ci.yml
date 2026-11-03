@@ -15,6 +15,7 @@ concurrency:
 
 env:
   PHP_VERSION: "8.4"
+  NODE_VERSION: "22"
   COMPOSER_NO_INTERACTION: "1"
 
 jobs:
@@ -97,6 +98,18 @@ jobs:
 
       - name: Instalar dependências PHP
         run: composer install --prefer-dist --no-progress
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências JS
+        run: npm ci
+
+      - name: Build assets (Vite)
+        run: npm run build
 
       - name: Preparar ambiente de testes
         run: |
