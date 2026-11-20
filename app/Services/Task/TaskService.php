@@ -26,6 +26,26 @@ class TaskService
     }
 
     /**
+     * Conta as tarefas do usuário por status (sempre com as três chaves),
+     * independente de qualquer filtro aplicado na listagem.
+     *
+     * @return array{pending: int, in_progress: int, completed: int}
+     */
+    public function countByStatus(User $user): array
+    {
+        $counts = $user->tasks()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return [
+            Task::STATUS_PENDING => (int) $counts->get(Task::STATUS_PENDING, 0),
+            Task::STATUS_IN_PROGRESS => (int) $counts->get(Task::STATUS_IN_PROGRESS, 0),
+            Task::STATUS_COMPLETED => (int) $counts->get(Task::STATUS_COMPLETED, 0),
+        ];
+    }
+
+    /**
      * Cria uma tarefa para o usuário.
      *
      * @param  array{title: string, description?: string|null, status?: string, priority?: string}  $data

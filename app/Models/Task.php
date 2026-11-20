@@ -58,6 +58,16 @@ class Task extends Model
     }
 
     /**
+     * Data de criação em linguagem natural ("há 3 horas"); "agora mesmo" para menos de 1 minuto.
+     */
+    public function createdAgo(): string
+    {
+        return $this->created_at->isAfter(now()->subMinute())
+            ? 'agora mesmo'
+            : $this->created_at->diffForHumans();
+    }
+
+    /**
      * Marca a tarefa como concluída.
      */
     public function markAsCompleted(): void

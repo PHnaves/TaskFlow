@@ -3,96 +3,125 @@
 @section('title', 'Minhas tarefas · TaskFlow')
 
 @section('content')
-    <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-xl font-semibold">Minhas tarefas</h1>
-        <a href="{{ route('tasks.create') }}" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800">Nova tarefa</a>
+    @php
+        // Colunas do quadro (uma por status).
+        $columns = [
+            'pending' => ['label' => 'Pendentes', 'dot' => 'bg-pending', 'empty' => 'Nada pendente por aqui.'],
+            'in_progress' => ['label' => 'Em progresso', 'dot' => 'bg-progress', 'empty' => 'Nada em andamento agora.'],
+            'completed' => ['label' => 'Concluídas', 'dot' => 'bg-done', 'empty' => 'Nenhuma tarefa concluída ainda.'],
+        ];
+
+        $filters = [
+            '' => ['label' => 'Todas', 'dot' => null],
+            'high' => ['label' => 'Alta', 'dot' => 'bg-p-high'],
+            'medium' => ['label' => 'Média', 'dot' => 'bg-p-medium'],
+            'low' => ['label' => 'Baixa', 'dot' => 'bg-p-low'],
+        ];
+
+        $grouped = $tasks->groupBy('status');
+        $total = array_sum($counts);
+        $percent = $total > 0 ? (int) round($counts['completed'] / $total * 100) : 0;
+        $firstName = Str::before(auth()->user()->name, ' ');
+    @endphp
+
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-tight sm:text-[28px]">Minhas tarefas</h1>
+            <p class="mt-1 text-muted">
+                @if ($total === 0)
+                    Olá, {{ $firstName }}! Vamos criar a primeira tarefa?
+                @else
+                    Olá, {{ $firstName }}!
+                    Você tem {{ $counts['in_progress'] }} em andamento e
+                    {{ $counts['pending'] }} {{ $counts['pending'] === 1 ? 'pendente' : 'pendentes' }}.
+                @endif
+            </p>
+        </div>
+
+        <a href="{{ route('tasks.create') }}" class="btn btn-primary btn-lg">
+            <x-icon name="plus" class="size-[18px]" stroke-width="2.5" />
+            Nova tarefa
+        </a>
     </div>
 
-    @php($labels = ['pending' => 'Pendente', 'in_progress' => 'Em progresso', 'completed' => 'Concluída'])
-    @php($priorityLabels = ['low' => 'Baixa', 'medium' => 'Média', 'high' => 'Alta'])
+    @if ($total === 0)
+        {{-- Estado vazio: ainda não há nenhuma tarefa --}}
+        <div class="panel mt-8 grid place-items-center border-dashed px-6 py-20 text-center">
+            <span class="grid size-16 place-items-center rounded-2xl bg-brand-soft text-brand-ink">
+                <x-icon name="clipboard" class="size-8" stroke-width="1.75" />
+            </span>
+            <h2 class="mt-5 text-lg font-semibold">Nenhuma tarefa por aqui</h2>
+            <p class="mt-1 max-w-sm text-muted">
+                Que paz... ou procrastinação? Crie sua primeira tarefa e comece a acompanhar o seu fluxo de trabalho.
+            </p>
+            <a href="{{ route('tasks.create') }}" class="btn btn-primary btn-lg mt-6">
+                <x-icon name="plus" class="size-[18px]" stroke-width="2.5" />
+                Criar primeira tarefa
+            </a>
+        </div>
+    @else
+        {{-- Barra de ferramentas: filtro por prioridade + progresso geral --}}
+        <div class="mt-7 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+            <div class="flex items-center gap-3">
+                <span class="hidden text-sm font-medium text-muted sm:inline">Prioridade</span>
+                <nav class="segmented" aria-label="Filtrar por prioridade">
+                    @foreach ($filters as $value => $filter)
+                        <a
+                            href="{{ $value === '' ? route('tasks.index') : route('tasks.index', ['priority' => $value]) }}"
+                            @class(['segment', 'segment-active' => (string) $priority === (string) $value])
+                            @if ((string) $priority === (string) $value) aria-current="page" @endif
+                        >
+                            @if ($filter['dot'])
+                                <span class="size-2 rounded-full {{ $filter['dot'] }}"></span>
+                            @endif
+                            {{ $filter['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
+            </div>
 
-    <form method="GET" action="{{ route('tasks.index') }}" class="mb-4 flex items-center gap-2 text-sm">
-        <label for="priority-filter" class="font-medium">Prioridade:</label>
-        <select id="priority-filter" name="priority" onchange="this.form.submit()" class="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-900">
-            <option value="">Todas</option>
-            @foreach ($priorityLabels as $value => $label)
-                <option value="{{ $value }}" @selected($priority === $value)>{{ $label }}</option>
+            <div class="flex min-w-60 flex-1 items-center gap-3 sm:max-w-sm" title="{{ $counts['completed'] }} de {{ $total }} tarefas concluídas">
+                <div class="progress" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso geral">
+                    <div class="progress-bar" style="width: {{ $percent }}%"></div>
+                </div>
+                <span class="whitespace-nowrap text-sm font-medium text-ink-2">
+                    <span class="font-semibold text-ink">{{ $percent }}%</span> concluído
+                </span>
+            </div>
+        </div>
+
+        {{-- Quadro Kanban --}}
+        <div class="mt-6 grid gap-5 lg:grid-cols-3">
+            @foreach ($columns as $status => $column)
+                @php($items = $grouped->get($status, collect()))
+
+                <section class="lane" aria-labelledby="lane-{{ $status }}">
+                    <header class="lane-header">
+                        <span class="size-2.5 rounded-full {{ $column['dot'] }}"></span>
+                        <h2 id="lane-{{ $status }}" class="text-sm font-semibold">{{ $column['label'] }}</h2>
+                        <span class="lane-count">{{ $items->count() }}</span>
+                    </header>
+
+                    <div class="space-y-3">
+                        @forelse ($items as $task)
+                            @include('tasks._card', ['task' => $task])
+                        @empty
+                            <p class="lane-empty">
+                                {{ $priority ? 'Nenhuma tarefa com essa prioridade.' : $column['empty'] }}
+                            </p>
+                        @endforelse
+
+                        @if ($status === 'pending')
+                            <a href="{{ route('tasks.create') }}" class="add-card">
+                                <x-icon name="plus" class="size-4" />
+                                Adicionar tarefa
+                            </a>
+                        @endif
+                    </div>
+                </section>
             @endforeach
-        </select>
-    </form>
+        </div>
+    @endif
 
-    @forelse ($tasks as $task)
-        <article class="mb-3 flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <div>
-                <h2 class="font-medium {{ $task->status === 'completed' ? 'line-through opacity-60' : '' }}">{{ $task->title }}</h2>
-                @if ($task->description)
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $task->description }}</p>
-                @endif
-                <span class="mt-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-700">{{ $labels[$task->status] }}</span>
-                <span class="mt-2 inline-block rounded-full px-2 py-0.5 text-xs {{ $task->priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' : ($task->priority === 'low' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300') }}">{{ $priorityLabels[$task->priority] }}</span>
-            </div>
-
-            <div class="flex shrink-0 items-center gap-3 text-sm">
-                @if ($task->status !== 'completed')
-                    <form method="POST" action="{{ route('tasks.complete', $task) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="font-medium text-green-700 hover:underline dark:text-green-400">Concluir</button>
-                    </form>
-                @endif
-                <a href="{{ route('tasks.edit', $task) }}" class="font-medium text-blue-700 hover:underline dark:text-blue-400">Editar</a>
-                <button
-                    type="button"
-                    data-delete-url="{{ route('tasks.destroy', $task) }}"
-                    data-delete-title="{{ $task->title }}"
-                    class="font-medium text-red-600 hover:underline dark:text-red-400"
-                >Excluir</button>
-            </div>
-        </article>
-    @empty
-        <p class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-600">
-            Nenhuma tarefa por aqui. Que paz... ou procrastinação?
-        </p>
-    @endforelse
-
-    {{-- Modal de confirmação de exclusão --}}
-    <dialog id="delete-modal" class="m-auto w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl backdrop:bg-black/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
-        <h2 class="text-lg font-semibold">Excluir tarefa?</h2>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Você está prestes a excluir <strong id="delete-modal-title"></strong>. Essa ação não pode ser desfeita.
-        </p>
-        <form id="delete-modal-form" method="POST" class="mt-6 flex justify-end gap-3">
-            @csrf
-            @method('DELETE')
-            <button type="button" id="delete-modal-cancel" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700">Cancelar</button>
-            <button type="submit" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">Excluir</button>
-        </form>
-    </dialog>
-
-    <script>
-        (function () {
-            const modal = document.getElementById('delete-modal');
-            const form = document.getElementById('delete-modal-form');
-            const title = document.getElementById('delete-modal-title');
-
-            document.querySelectorAll('[data-delete-url]').forEach(function (button) {
-                button.addEventListener('click', function () {
-                    form.action = button.dataset.deleteUrl;
-                    title.textContent = '"' + button.dataset.deleteTitle + '"';
-                    modal.showModal();
-                });
-            });
-
-            document.getElementById('delete-modal-cancel').addEventListener('click', function () {
-                modal.close();
-            });
-
-            // Clique fora da caixa fecha o modal
-            modal.addEventListener('click', function (event) {
-                if (event.target === modal) {
-                    modal.close();
-                }
-            });
-        })();
-    </script>
+    @include('tasks._delete-modal')
 @endsection

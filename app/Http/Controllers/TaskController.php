@@ -18,9 +18,14 @@ class TaskController extends Controller
 
     public function index(Request $request): View
     {
+        // Ignora valores inválidos na URL (ex.: ?priority=banana) em vez de filtrar por eles.
+        $priority = $request->query('priority');
+        $priority = in_array($priority, Task::PRIORITIES, true) ? $priority : null;
+
         return view('tasks.index', [
-            'tasks' => $this->taskService->listForUser($request->user(), $request->query('priority')),
-            'priority' => $request->query('priority'),
+            'tasks' => $this->taskService->listForUser($request->user(), $priority),
+            'counts' => $this->taskService->countByStatus($request->user()),
+            'priority' => $priority,
         ]);
     }
 

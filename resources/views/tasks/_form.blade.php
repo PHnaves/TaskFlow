@@ -1,48 +1,96 @@
-@php($input = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-600 dark:bg-slate-900')
+@php
+    $statuses = [
+        'pending' => ['label' => 'Pendente', 'dot' => 'bg-pending'],
+        'in_progress' => ['label' => 'Em progresso', 'dot' => 'bg-progress'],
+        'completed' => ['label' => 'Concluída', 'dot' => 'bg-done'],
+    ];
 
-<div class="space-y-4">
+    $priorities = [
+        'low' => ['label' => 'Baixa', 'dot' => 'bg-p-low'],
+        'medium' => ['label' => 'Média', 'dot' => 'bg-p-medium'],
+        'high' => ['label' => 'Alta', 'dot' => 'bg-p-high'],
+    ];
+
+    $currentStatus = old('status', $task->status ?? 'pending');
+    $currentPriority = old('priority', $task->priority ?? 'medium');
+@endphp
+
+<div class="space-y-6">
     <div>
-        <label for="title" class="mb-1 block text-sm font-medium">Título</label>
-        <input id="title" type="text" name="title" value="{{ old('title', $task->title ?? '') }}" required maxlength="255" class="{{ $input }}">
+        <label for="title" class="label">Título</label>
+        <input
+            id="title"
+            name="title"
+            type="text"
+            value="{{ old('title', $task->title ?? '') }}"
+            placeholder="Ex.: Revisar contrato com a transportadora"
+            maxlength="255"
+            required
+            autofocus
+            @class(['input', 'input-error' => $errors->has('title')])
+        >
         @error('title')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="field-error"><x-icon name="alert" class="mt-0.5 size-4 shrink-0" /><span>{{ $message }}</span></p>
         @enderror
     </div>
 
     <div>
-        <label for="description" class="mb-1 block text-sm font-medium">Descrição</label>
-        <textarea id="description" name="description" rows="4" class="{{ $input }}">{{ old('description', $task->description ?? '') }}</textarea>
+        <label for="description" class="label">
+            Descrição <span class="font-normal text-muted">(opcional)</span>
+        </label>
+        <textarea
+            id="description"
+            name="description"
+            rows="4"
+            placeholder="Detalhes, links, contexto..."
+            @class(['input', 'input-error' => $errors->has('description')])
+        >{{ old('description', $task->description ?? '') }}</textarea>
         @error('description')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="field-error"><x-icon name="alert" class="mt-0.5 size-4 shrink-0" /><span>{{ $message }}</span></p>
         @enderror
     </div>
 
-    <div>
-        <label for="status" class="mb-1 block text-sm font-medium">Status</label>
-        <select id="status" name="status" class="{{ $input }}">
-            @foreach (['pending' => 'Pendente', 'in_progress' => 'Em progresso', 'completed' => 'Concluída'] as $value => $label)
-                <option value="{{ $value }}" @selected(old('status', $task->status ?? 'pending') === $value)>{{ $label }}</option>
+    <fieldset>
+        <legend class="label">Status</legend>
+        <div class="grid gap-2 sm:grid-cols-3">
+            @foreach ($statuses as $value => $option)
+                <label>
+                    <input type="radio" name="status" value="{{ $value }}" class="peer sr-only" @checked($currentStatus === $value)>
+                    <span class="choice-box">
+                        <span class="size-2.5 rounded-full {{ $option['dot'] }}"></span>
+                        {{ $option['label'] }}
+                    </span>
+                </label>
             @endforeach
-        </select>
+        </div>
         @error('status')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="field-error"><x-icon name="alert" class="mt-0.5 size-4 shrink-0" /><span>{{ $message }}</span></p>
         @enderror
-    </div>
+    </fieldset>
 
-    <div>
-        <label for="priority" class="mb-1 block text-sm font-medium">Prioridade</label>
-        <select id="priority" name="priority" class="{{ $input }}">
-            @foreach (['low' => 'Baixa', 'medium' => 'Média', 'high' => 'Alta'] as $value => $label)
-                <option value="{{ $value }}" @selected(old('priority', $task->priority ?? 'medium') === $value)>{{ $label }}</option>
+    <fieldset>
+        <legend class="label">Prioridade</legend>
+        <div class="grid gap-2 sm:grid-cols-3">
+            @foreach ($priorities as $value => $option)
+                <label>
+                    <input type="radio" name="priority" value="{{ $value }}" class="peer sr-only" @checked($currentPriority === $value)>
+                    <span class="choice-box">
+                        <span class="size-2.5 rounded-full {{ $option['dot'] }}"></span>
+                        {{ $option['label'] }}
+                    </span>
+                </label>
             @endforeach
-        </select>
+        </div>
         @error('priority')
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="field-error"><x-icon name="alert" class="mt-0.5 size-4 shrink-0" /><span>{{ $message }}</span></p>
         @enderror
-    </div>
+    </fieldset>
 
-    <div class="flex gap-3">
-        <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800">Salvar</button>
-        <a href="{{ route('tasks.index') }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700">Cancelar</a>
+    <div class="flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:justify-end">
+        <a href="{{ route('tasks.index') }}" class="btn btn-secondary btn-lg">Cancelar</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+            <x-icon name="check" class="size-[18px]" stroke-width="2.5" />
+            Salvar tarefa
+        </button>
     </div>
 </div>
