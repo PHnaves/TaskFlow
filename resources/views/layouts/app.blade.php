@@ -1,35 +1,52 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title>@yield('title', config('app.name', 'TaskFlow'))</title>
-
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('layouts._head')
     </head>
-    <body class="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
-        <header class="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-            <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-                <a href="{{ route('tasks.index') }}" class="text-xl font-bold text-blue-700 dark:text-blue-400">TaskFlow</a>
-                <div class="flex items-center gap-4 text-sm">
-                    <span class="text-slate-500 dark:text-slate-400">{{ auth()->user()->name }}</span>
+    <body class="min-h-screen">
+        <header class="sticky top-0 z-30 border-b border-line bg-surface/80 backdrop-blur-md">
+            <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+                <a href="{{ route('tasks.index') }}" aria-label="TaskFlow — início">
+                    <x-logo />
+                </a>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                        <div class="hidden leading-tight sm:block">
+                            <p class="text-sm font-medium">{{ auth()->user()->name }}</p>
+                            <p class="text-xs text-muted">{{ auth()->user()->email }}</p>
+                        </div>
+                    </div>
+
+                    <span class="h-6 w-px bg-line" aria-hidden="true"></span>
+
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="font-medium text-blue-700 hover:underline dark:text-blue-400">Sair</button>
+                        <button type="submit" class="btn btn-ghost h-9 px-3">
+                            <x-icon name="logout" class="size-4" />
+                            <span class="hidden sm:inline">Sair</span>
+                            <span class="sr-only sm:hidden">Sair</span>
+                        </button>
                     </form>
                 </div>
             </div>
         </header>
 
-        <main class="mx-auto max-w-4xl px-4 py-8">
-            @if (session('status'))
-                <div class="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                    {{ session('status') }}
-                </div>
-            @endif
-
+        <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
             @yield('content')
         </main>
+
+        @if (session('status'))
+            <div class="toast" role="status" data-toast>
+                <span class="mt-px grid size-5 shrink-0 place-items-center rounded-full bg-ok-soft text-ok-ink">
+                    <x-icon name="check" class="size-3" stroke-width="3" />
+                </span>
+                <p class="py-px leading-snug">{{ session('status') }}</p>
+                <button type="button" class="icon-btn -my-1 size-7" data-toast-close aria-label="Fechar aviso">
+                    <x-icon name="x" class="size-4" />
+                </button>
+            </div>
+        @endif
     </body>
 </html>

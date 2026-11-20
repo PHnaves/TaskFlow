@@ -16,7 +16,7 @@ return [
     'numeric' => 'O campo :attribute deve ser um número.',
     'required' => 'O campo :attribute é obrigatório.',
     'string' => 'O campo :attribute deve ser um texto.',
-    'unique' => 'Este valor de :attribute já está em uso.',
+    'unique' => 'O campo :attribute já está em uso.',
     'active_url' => 'O campo :attribute não é uma URL válida.',
     'after' => 'O campo :attribute deve ser uma data posterior a :date.',
     'after_or_equal' => 'O campo :attribute deve ser uma data posterior ou igual a :date.',
