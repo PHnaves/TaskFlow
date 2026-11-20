@@ -22,6 +22,7 @@ class StoreTaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'status' => ['sometimes', Rule::in(Task::STATUSES)],
+            'priority' => ['sometimes', Rule::in(Task::PRIORITIES)],
         ];
     }
 
@@ -34,6 +35,7 @@ class StoreTaskRequest extends FormRequest
             'title.required' => 'Informe o título da tarefa.',
             'title.max' => 'O título pode ter no máximo 255 caracteres.',
             'status.in' => 'Status inválido.',
+            'priority.in' => 'Prioridade inválida.',
         ];
     }
 }

@@ -29,6 +29,18 @@
         @enderror
     </div>
 
+    <div>
+        <label for="priority" class="mb-1 block text-sm font-medium">Prioridade</label>
+        <select id="priority" name="priority" class="{{ $input }}">
+            @foreach (['low' => 'Baixa', 'medium' => 'Média', 'high' => 'Alta'] as $value => $label)
+                <option value="{{ $value }}" @selected(old('priority', $task->priority ?? 'medium') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        @error('priority')
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
     <div class="flex gap-3">
         <button type="submit" class="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800">Salvar</button>
         <a href="{{ route('tasks.index') }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700">Cancelar</a>

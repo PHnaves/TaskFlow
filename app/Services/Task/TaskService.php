@@ -10,18 +10,25 @@ class TaskService
 {
     /**
      * Lista as tarefas do usuário, da mais recente para a mais antiga.
+     * Quando $priority é informada, filtra apenas por ela.
      *
      * @return Collection<int, Task>
      */
-    public function listForUser(User $user): Collection
+    public function listForUser(User $user, ?string $priority = null): Collection
     {
-        return $user->tasks()->latest()->get();
+        return $user->tasks()
+            ->when(
+                in_array($priority, Task::PRIORITIES, true),
+                fn ($query) => $query->where('priority', $priority),
+            )
+            ->latest()
+            ->get();
     }
 
     /**
      * Cria uma tarefa para o usuário.
      *
-     * @param  array{title: string, description?: string|null, status?: string}  $data
+     * @param  array{title: string, description?: string|null, status?: string, priority?: string}  $data
      */
     public function create(User $user, array $data): Task
     {
@@ -31,7 +38,7 @@ class TaskService
     /**
      * Atualiza os dados de uma tarefa.
      *
-     * @param  array{title?: string, description?: string|null, status?: string}  $data
+     * @param  array{title?: string, description?: string|null, status?: string, priority?: string}  $data
      */
     public function update(Task $task, array $data): Task
     {

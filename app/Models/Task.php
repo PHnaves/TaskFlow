@@ -25,11 +25,25 @@ class Task extends Model
         self::STATUS_COMPLETED,
     ];
 
+    public const PRIORITY_LOW = 'low';
+
+    public const PRIORITY_MEDIUM = 'medium';
+
+    public const PRIORITY_HIGH = 'high';
+
+    /** @var list<string> */
+    public const PRIORITIES = [
+        self::PRIORITY_LOW,
+        self::PRIORITY_MEDIUM,
+        self::PRIORITY_HIGH,
+    ];
+
     /** @var list<string> */
     protected $fillable = [
         'title',
         'description',
         'status',
+        'priority',
         'user_id',
     ];
 

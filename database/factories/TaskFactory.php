@@ -20,6 +20,7 @@ class TaskFactory extends Factory
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'status' => Task::STATUS_PENDING,
+            'priority' => Task::PRIORITY_MEDIUM,
             'user_id' => User::factory(),
         ];
     }

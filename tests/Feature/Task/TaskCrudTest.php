@@ -61,6 +61,36 @@ class TaskCrudTest extends TestCase
             ->assertSessionHasErrors('status');
     }
 
+    public function test_task_defaults_to_medium_priority(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post('/tasks', ['title' => 'Sem prioridade']);
+
+        $this->assertDatabaseHas('tasks', ['title' => 'Sem prioridade', 'priority' => 'medium']);
+    }
+
+    public function test_task_rejects_invalid_priority(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post('/tasks', ['title' => 'X', 'priority' => 'urgentissima'])
+            ->assertSessionHasErrors('priority');
+    }
+
+    public function test_user_can_filter_tasks_by_priority(): void
+    {
+        $user = User::factory()->create();
+        Task::factory()->for($user)->create(['title' => 'Apagar incendio', 'priority' => 'high']);
+        Task::factory()->for($user)->create(['title' => 'Regar planta', 'priority' => 'low']);
+
+        $this->actingAs($user)->get('/tasks?priority=high')
+            ->assertOk()
+            ->assertSee('Apagar incendio')
+            ->assertDontSee('Regar planta');
+    }
+
     public function test_user_can_update_a_task(): void
     {
         $user = User::factory()->create();

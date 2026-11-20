@@ -19,7 +19,8 @@ class TaskController extends Controller
     public function index(Request $request): View
     {
         return view('tasks.index', [
-            'tasks' => $this->taskService->listForUser($request->user()),
+            'tasks' => $this->taskService->listForUser($request->user(), $request->query('priority')),
+            'priority' => $request->query('priority'),
         ]);
     }
 
