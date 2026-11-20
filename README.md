@@ -35,6 +35,8 @@ npm run dev     # em outro terminal
 php artisan serve
 ```
 
+> **CSS/JS:** a interface usa Tailwind compilado pelo Vite. Deixe o `npm run dev` rodando (no Docker, o serviço `vite` faz isso) **ou** gere os arquivos com `npm run build`. Sem isso o navegador carrega um CSS antigo e as telas aparecem sem estilo.
+
 ```bash
 php artisan test
 ```
