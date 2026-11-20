@@ -3,9 +3,8 @@
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Sem página inicial: quem acessa a raiz vai direto para as tarefas (o middleware auth manda visitantes ao login).
+Route::redirect('/', '/tasks');
 
 Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class)->except(['show']);
