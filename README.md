@@ -68,6 +68,26 @@ docker exec taskflow-db psql -U taskflow -d taskflow -c "CREATE DATABASE taskflo
 
 A CI no GitHub Actions (`.github/workflows/ci.yml`) sobe um serviço Postgres dedicado e roda os testes da mesma forma — sem SQLite em nenhum ambiente.
 
+## Funcionalidades
+
+- Cadastro, login e logout de usuários.
+- CRUD de tarefas (criar, listar, editar, concluir e excluir), isolado por usuário: cada um só vê e altera as próprias tarefas.
+- Prioridade das tarefas (Baixa, Média, Alta) e filtro por prioridade na listagem — veja a mudança de escopo abaixo.
+
+## Mudança de escopo
+
+**Solicitação (simulada):** durante o desenvolvimento, o cliente (a startup de logística) pediu para *priorizar tarefas críticas*, o que o escopo inicial não previa.
+
+**Mudança:** adicionar o campo `priority` (`low`, `medium`, `high`, padrão `medium`) às tarefas e permitir filtrar a listagem por prioridade.
+
+**Justificativa:** sem priorização, entregas urgentes se misturam com tarefas rotineiras, o que atrapalha o acompanhamento do fluxo de trabalho — justamente a dor do cliente. É uma mudança pequena, de baixo risco (uma coluna com valor padrão, sem quebrar dados existentes) e de alto valor, então cabe no ciclo ágil atual.
+
+**Como foi gerenciada:**
+1. Novo card no Kanban (`To Do`): "Adicionar prioridade às tarefas" + "Filtrar tarefas por prioridade".
+2. Migration separada (`add_priority_to_tasks_table`), sem alterar a migration original.
+3. Commits `feat(escopo)` implementando a mudança, com testes cobrindo valor padrão, validação e filtro.
+4. Diagrama de classes já prevê o atributo `priority` em `Task`.
+
 ## Fluxo de trabalho
 
 - **Kanban**: GitHub Projects, colunas `To Do` → `In Progress` → `Done`.
