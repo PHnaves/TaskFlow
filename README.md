@@ -53,14 +53,13 @@ A aplicação fica em `http://localhost:8000` e o Vite (hot reload) em `http://l
 
 **Banco de testes:** os testes rodam contra PostgreSQL, igual à aplicação — nunca contra SQLite. Para isolar os testes do banco de desenvolvimento, o container `db` cria automaticamente (via `docker/initdb/`) um segundo banco, `taskflow_testing`, na mesma instância do Postgres; o `RefreshDatabase` migra/limpa apenas esse banco, nunca o `taskflow` de dev.
 
-Como o `docker-compose.yml` define `APP_ENV`/`DB_CONNECTION`/`DB_DATABASE` como variáveis de ambiente reais do container (prioridade sobre o `<env>` do `phpunit.xml`, que o PHPUnit não sobrescreve por padrão), rode os testes via `docker exec` apontando explicitamente para o banco de testes:
+No Docker, rode os testes com o comando simples:
 
 ```bash
-docker exec \
-  -e APP_ENV=testing -e DB_CONNECTION=pgsql -e DB_DATABASE=taskflow_testing \
-  -e SESSION_DRIVER=array -e CACHE_STORE=array -e QUEUE_CONNECTION=sync -e MAIL_MAILER=array \
-  taskflow-app php artisan test
+docker compose exec app php artisan test
 ```
+
+Isso é seguro: o `tests/TestCase.php` força `APP_ENV=testing` e o banco `taskflow_testing` (o container define `APP_ENV`/`DB_DATABASE` do banco de dev como variáveis reais, que sozinhas venceriam o `phpunit.xml`) e **recusa rodar** se o banco não for de testes, justamente para o `RefreshDatabase` nunca apagar os dados de desenvolvimento.
 
 Se o volume do `db` já existia antes dessa mudança (container criado anteriormente), crie o banco manualmente uma vez:
 
